@@ -1,7 +1,6 @@
 package alfan.dev.warehouse.controller;
 
-import alfan.dev.warehouse.dto.ApiResponse;
-import alfan.dev.warehouse.dto.ItemDto;
+import alfan.dev.warehouse.dto.*;
 import alfan.dev.warehouse.service.InventoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,5 +48,39 @@ public class InventoryController {
     public ResponseEntity<ApiResponse<Void>> deleteItem(@PathVariable UUID id) {
         inventoryService.deleteItem(id);
         return ResponseEntity.ok(ApiResponse.success("Item deleted successfully", null));
+    }
+
+    // --- VARIANT ENDPOINTS ---
+
+    @PostMapping("/items/{itemId}/variants")
+    public ResponseEntity<ApiResponse<ItemVariantDto>> addVariant(
+            @PathVariable UUID itemId,
+            @Valid @RequestBody ItemVariantDto request) {
+        ItemVariantDto data = inventoryService.addVariant(itemId, request);
+        return ResponseEntity.ok(ApiResponse.success("Variant added successfully", data));
+    }
+
+    @PutMapping("/variants/{variantId}")
+    public ResponseEntity<ApiResponse<ItemVariantDto>> updateVariant(
+            @PathVariable UUID variantId,
+            @Valid @RequestBody ItemVariantDto request) {
+        ItemVariantDto data = inventoryService.updateVariant(variantId, request);
+        return ResponseEntity.ok(ApiResponse.success("Variant updated successfully", data));
+    }
+
+    @DeleteMapping("/variants/{variantId}")
+    public ResponseEntity<ApiResponse<Void>> deleteVariant(@PathVariable UUID variantId) {
+        inventoryService.deleteVariant(variantId);
+        return ResponseEntity.ok(ApiResponse.success("Variant deleted successfully", null));
+    }
+
+    // --- TRANSACTION ENDPOINT ---
+
+    @PostMapping("/sell")
+    public ResponseEntity<ApiResponse<SellResponse>> sellItem(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody SellRequest request) {
+        SellResponse data = inventoryService.processSale(idempotencyKey, request);
+        return ResponseEntity.ok(ApiResponse.success("Transaction completed", data));
     }
 }
